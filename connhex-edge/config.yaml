@@ -1,0 +1,34 @@
+name: "Connhex Edge for Home Assistant"
+description: >-
+  Bridges Home Assistant entities to Connhex Cloud via Connhex Edge.
+  Monitors state changes, batches them into SenML format, and publishes
+  to Connhex Cloud.
+version: "v0.1.0"
+slug: connhex-edge
+url: "https://github.com/compiuta-origin/connhex-hassio-addons/tree/development/connhex-edge"
+arch:
+  - aarch64
+  - amd64
+  - armv7
+image: "ghcr.io/compiuta-origin/connhex/ha-adapter-{arch}"
+init: false
+startup: application
+boot: auto
+options:
+  connhex_host: ""
+  batch_interval: "30s"
+  log_level: "info"
+  filter_include: []
+  filter_exclude: []
+schema:
+  connhex_host: str
+  batch_interval: str?
+  log_level: "list(debug|info|warn|error)?"
+  filter_include:
+    - str
+  filter_exclude:
+    - str
+homeassistant_api: true
+hassio_api: true
+map:
+  - addon_config:rw
