@@ -26,22 +26,29 @@ After installation, go to the **Configuration** tab of the add-on and fill in th
 | `connhex_host`   | Yes      | Connhex Cloud infrastructure host (e.g. `compiuta.connhex.dev`)        | —       |
 | `batch_interval` | No       | How often events are batched and sent (e.g. `30s`, `1m`)               | `30s`   |
 | `log_level`      | No       | Logging verbosity: `debug`, `info`, `warn`, `error`                    | `info`  |
-| `filter_include` | No       | List of HA entity IDs to monitor. If empty, all entities are monitored | —       |
-| `filter_exclude` | No       | List of HA entity IDs to always ignore                                 | —       |
+| `filter_include` | No       | List of HA entity IDs to monitor. If empty, all entities are monitored. Wildcards supported. | —  |
+| `filter_exclude` | No       | List of HA entity IDs to always ignore. Wildcards supported.                                 | —  |
 
 ### Entity filters
 
 - If `filter_include` is empty, **all** entities are monitored
 - `filter_exclude` always takes precedence — excluded entities are ignored even if they appear in `filter_include`
+- Both fields support `*` as a wildcard matching any sequence of characters
+
+| Pattern | Matches | Does not match |
+|---|---|---|
+| `sensor.*` | `sensor.temperature`, `sensor.humidity` | `binary_sensor.motion` |
+| `*.temperature` | `sensor.temperature`, `input_number.temperature` | `sensor.humidity` |
+| `binary_sensor.*_motion` | `binary_sensor.kitchen_motion`, `binary_sensor.hall_motion` | `binary_sensor.kitchen_door` |
 
 Example:
 
 ```yaml
 filter_include:
-  - sensor.temperature
+  - sensor.*
   - light.living_room
 filter_exclude:
-  - sensor.unwanted
+  - sensor.internal_*
 ```
 
 ## First run
