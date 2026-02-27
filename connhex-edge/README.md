@@ -1,5 +1,9 @@
 # Connhex Edge for Home Assistant
 
+![Supports aarch64 Architecture][aarch64-shield]
+![Supports amd64 Architecture][amd64-shield]
+![Supports armv7 Architecture][armv7-shield]
+
 Bridges Home Assistant entities to [Connhex Cloud](https://connhex.com) via Connhex Edge. Monitors state changes, batches them into SenML format, and publishes to the Connhex IoT infrastructure.
 
 ## Requirements
@@ -58,3 +62,7 @@ On first start, the add-on will register with the Connhex Cloud infrastructure u
 ## Authentication
 
 The add-on authenticates with Home Assistant automatically using the Supervisor token — no manual token creation is required.
+
+[aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
+[amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
+[armv7-shield]: https://img.shields.io/badge/armv7-yes-green.svg
