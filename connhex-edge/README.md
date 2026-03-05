@@ -4,7 +4,7 @@
 ![Supports amd64 Architecture][amd64-shield]
 ![Supports armv7 Architecture][armv7-shield]
 
-Bridges Home Assistant entities to [Connhex Cloud](https://connhex.com) via Connhex Edge. Monitors state changes, batches them into SenML format, and publishes to the Connhex IoT infrastructure.
+Bidirectional bridge between Home Assistant and [Connhex Cloud](https://connhex.com) via Connhex Edge. Monitors state changes, batches them into SenML format, and publishes to the Connhex IoT infrastructure. Also receives commands from Connhex Cloud to control Home Assistant devices remotely.
 
 ## Requirements
 
@@ -25,13 +25,14 @@ Bridges Home Assistant entities to [Connhex Cloud](https://connhex.com) via Conn
 
 After installation, go to the **Configuration** tab of the add-on and fill in the following options:
 
-| Option           | Required | Description                                                            | Default |
-| ---------------- | -------- | ---------------------------------------------------------------------- | ------- |
-| `connhex_host`   | Yes      | Connhex Cloud infrastructure host (e.g. `compiuta.connhex.dev`)        | —       |
-| `batch_interval` | No       | How often events are batched and sent (e.g. `30s`, `1m`)               | `30s`   |
-| `log_level`      | No       | Logging verbosity: `debug`, `info`, `warn`, `error`                    | `info`  |
-| `filter_include` | No       | List of HA entity IDs to monitor. If empty, all entities are monitored. Wildcards supported. | —  |
-| `filter_exclude` | No       | List of HA entity IDs to always ignore. Wildcards supported.                                 | —  |
+| Option               | Required | Description                                                                                  | Default |
+| -------------------- | -------- | -------------------------------------------------------------------------------------------- | ------- |
+| `connhex_host`       | Yes      | Connhex Cloud infrastructure host (e.g. `compiuta.connhex.dev`)                              | —       |
+| `batch_interval`     | No       | How often events are batched and sent (e.g. `30s`, `1m`)                                     | `30s`   |
+| `log_level`          | No       | Logging verbosity: `debug`, `info`, `warn`, `error`                                          | `info`  |
+| `filter_include`     | No       | List of HA entity IDs to monitor. If empty, all entities are monitored. Wildcards supported. | —       |
+| `filter_exclude`     | No       | List of HA entity IDs to always ignore. Wildcards supported.                                 | —       |
+| `commands_allowlist` | No       | List of entity patterns that Connhex Cloud is allowed to control. Wildcards supported.       | `*`     |
 
 ### Entity filters
 
@@ -39,10 +40,10 @@ After installation, go to the **Configuration** tab of the add-on and fill in th
 - `filter_exclude` always takes precedence — excluded entities are ignored even if they appear in `filter_include`
 - Both fields support `*` as a wildcard matching any sequence of characters
 
-| Pattern | Matches | Does not match |
-|---|---|---|
-| `sensor.*` | `sensor.temperature`, `sensor.humidity` | `binary_sensor.motion` |
-| `*.temperature` | `sensor.temperature`, `input_number.temperature` | `sensor.humidity` |
+| Pattern                  | Matches                                                     | Does not match               |
+| ------------------------ | ----------------------------------------------------------- | ---------------------------- |
+| `sensor.*`               | `sensor.temperature`, `sensor.humidity`                     | `binary_sensor.motion`       |
+| `*.temperature`          | `sensor.temperature`, `input_number.temperature`            | `sensor.humidity`            |
 | `binary_sensor.*_motion` | `binary_sensor.kitchen_motion`, `binary_sensor.hall_motion` | `binary_sensor.kitchen_door` |
 
 Example:
@@ -53,6 +54,80 @@ filter_include:
   - light.living_room
 filter_exclude:
   - sensor.internal_*
+```
+
+### Commands allowlist
+
+The `commands_allowlist` controls which Home Assistant entities Connhex Cloud is allowed to control remotely. By default it is set to `*` (allow all). The same wildcard patterns used for entity filtering apply here.
+
+- Set to `["*"]` to allow controlling any entity (default)
+- Set to specific patterns to restrict control (e.g., `["light.*", "switch.*"]`)
+- Set to an empty list `[]` to block all commands
+
+Example — only allow controlling lights and switches:
+
+```yaml
+commands_allowlist:
+  - "light.*"
+  - "switch.*"
+```
+
+Commands targeting entities not in the allowlist are blocked and logged. Commands without an `entity_id` (domain-only services like `persistent_notification.create`) bypass the allowlist check.
+
+### Sending commands from Connhex Control
+
+Commands can be sent from Connhex Control via the **Controls** tab of the connectable detail page, using the **Send command** panel.
+
+The **Command** field must be set to `call_service` — this is the only command type currently supported. The **Payload** field contains a JSON object describing the Home Assistant service call:
+
+| Field          | Type   | Required | Description                                                      |
+| -------------- | ------ | -------- | ---------------------------------------------------------------- |
+| `domain`       | string | yes      | The HA service domain (e.g., `light`, `switch`, `input_boolean`) |
+| `service`      | string | yes      | The service to call (e.g., `turn_on`, `turn_off`, `toggle`)      |
+| `entity_id`    | string | no       | The target entity. Omit for domain-only services.                |
+| `service_data` | object | no       | Additional parameters for the service call.                      |
+
+**Example — turn on a light with brightness:**
+
+- **Service**: `ha-adapter`
+- **Command**: `call_service`
+- **Payload**:
+
+```json
+{
+  "domain": "light",
+  "service": "turn_on",
+  "entity_id": "light.living_room",
+  "service_data": { "brightness": 255 }
+}
+```
+
+**Example — send a persistent notification (no entity_id needed):**
+
+- **Service**: `ha-adapter`
+- **Command**: `call_service`
+- **Payload**:
+
+```json
+{
+  "domain": "persistent_notification",
+  "service": "create",
+  "service_data": { "message": "Hello from Connhex!", "title": "Connhex Test" }
+}
+```
+
+**Example — toggle a switch:**
+
+- **Service**: `ha-adapter`
+- **Command**: `call_service`
+- **Payload**:
+
+```json
+{
+  "domain": "input_boolean",
+  "service": "toggle",
+  "entity_id": "input_boolean.test_switch"
+}
 ```
 
 ## First run
