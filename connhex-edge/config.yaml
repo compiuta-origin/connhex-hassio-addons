@@ -3,7 +3,7 @@ description: >-
   Bridges Home Assistant entities to Connhex Cloud via Connhex Edge.
   Monitors state changes, batches them into SenML format, and publishes
   to Connhex Cloud.
-version: "v0.3.0"
+version: "v0.4.0"
 slug: connhex-edge
 url: "https://github.com/compiuta-origin/connhex-hassio-addons/tree/development/connhex-edge"
 arch:
@@ -17,6 +17,7 @@ boot: auto
 options:
   connhex_host: ""
   batch_interval: "30s"
+  sync_interval: "60s"
   log_level: "info"
   filter_include: []
   filter_exclude: []
@@ -25,6 +26,7 @@ options:
 schema:
   connhex_host: str
   batch_interval: str?
+  sync_interval: str?
   log_level: "list(debug|info|warn|error)?"
   filter_include:
     - str

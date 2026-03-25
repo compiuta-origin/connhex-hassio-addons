@@ -29,6 +29,7 @@ After installation, go to the **Configuration** tab of the add-on and fill in th
 | -------------------- | -------- | -------------------------------------------------------------------------------------------- | ------- |
 | `connhex_host`       | Yes      | Connhex Cloud infrastructure host (e.g. `compiuta.connhex.dev`)                              | —       |
 | `batch_interval`     | No       | How often events are batched and sent (e.g. `30s`, `1m`)                                     | `30s`   |
+| `sync_interval`      | No       | How often entities are polled from HA to reconcile state (min: `60s`)                        | `60s`   |
 | `log_level`          | No       | Logging verbosity: `debug`, `info`, `warn`, `error`                                          | `info`  |
 | `filter_include`     | No       | List of HA entity IDs to monitor. If empty, all entities are monitored. Wildcards supported. | —       |
 | `filter_exclude`     | No       | List of HA entity IDs to always ignore. Wildcards supported.                                 | —       |
