@@ -25,15 +25,16 @@ Bidirectional bridge between Home Assistant and [Connhex Cloud](https://connhex.
 
 After installation, go to the **Configuration** tab of the add-on and fill in the following options:
 
-| Option               | Required | Description                                                                                  | Default |
-| -------------------- | -------- | -------------------------------------------------------------------------------------------- | ------- |
-| `connhex_host`       | Yes      | Connhex Cloud infrastructure host (e.g. `compiuta.connhex.dev`)                              | —       |
-| `batch_interval`     | No       | How often events are batched and sent (e.g. `30s`, `1m`)                                     | `30s`   |
-| `sync_interval`      | No       | How often entities are polled from HA to reconcile state (min: `60s`)                        | `60s`   |
-| `log_level`          | No       | Logging verbosity: `debug`, `info`, `warn`, `error`                                          | `info`  |
-| `filter_include`     | No       | List of HA entity IDs to monitor. If empty, all entities are monitored. Wildcards supported. | —       |
-| `filter_exclude`     | No       | List of HA entity IDs to always ignore. Wildcards supported.                                 | —       |
-| `commands_allowlist` | No       | List of entity patterns that Connhex Cloud is allowed to control. Wildcards supported.       | `*`     |
+| Option               | Required | Description                                                                                                           | Default |
+| -------------------- | -------- | --------------------------------------------------------------------------------------------------------------------- | ------- |
+| `connhex_host`       | Yes      | Connhex Cloud infrastructure host (e.g. `compiuta.connhex.dev`)                                                       | —       |
+| `batch_interval`     | No       | How often events are batched and sent (e.g. `30s`, `1m`)                                                              | `30s`   |
+| `sync_interval`      | No       | How often entities are polled from HA to reconcile state (min: `60s`)                                                 | `60s`   |
+| `log_level`          | No       | Logging verbosity: `debug`, `info`, `warn`, `error`                                                                   | `info`  |
+| `filter_include`     | No       | List of HA entity IDs to monitor. If empty, all entities are monitored. Wildcards supported.                          | —       |
+| `filter_exclude`     | No       | List of HA entity IDs to always ignore. Wildcards supported.                                                          | —       |
+| `commands_allowlist` | No       | List of entity patterns that Connhex Cloud is allowed to control. Wildcards supported.                                | `*`     |
+| `attributes_include` | No       | List of entity patterns whose attributes (e.g. brightness, color_temp) are forwarded to Connhex. Wildcards supported. | —       |
 
 ### Entity filters
 
@@ -74,6 +75,22 @@ commands_allowlist:
 ```
 
 Commands targeting entities not in the allowlist are blocked and logged. Commands without an `entity_id` (domain-only services like `persistent_notification.create`) bypass the allowlist check.
+
+### Entity attributes
+
+Home Assistant entities carry attributes alongside their primary state (e.g. a light's `brightness` and `color_temp`). By default only the primary state is forwarded. Use `attributes_include` to opt in entities whose attributes should also be exported.
+
+For each matching entity, every attribute is published to Connhex as an independent data record with a composite name, e.g. `ha:light:living_room:brightness`. Scalar attributes (numbers, booleans, strings) are sent as typed SenML values; non-scalar attributes (lists like `rgb_color`, nested objects) are JSON-encoded and delivered as opaque bytes so they can be preserved end-to-end.
+
+Example — export attributes for all lights and a specific climate entity:
+
+```yaml
+attributes_include:
+  - "light.*"
+  - "climate.living_room"
+```
+
+If `attributes_include` is empty (default), no attributes are forwarded.
 
 ### Sending commands from Connhex Control
 
